@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>SalahAPI</RootNamespace>
+    <AssemblyName>SalahAPI</AssemblyName>
+    <Version>1.1.0</Version>
+    <Authors>SalahAPI</Authors>
+    <Description>A .NET library for working with the SalahAPI specification and calculating Islamic prayer times.</Description>
+    <PackageTags>prayer;islam;salah;times;islamic</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
+  </ItemGroup>
+
+</Project>

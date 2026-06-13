@@ -1,0 +1,54 @@
+## .NET / C#
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.ncb
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+_ReSharper*/
+*.DotSettings.user
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Visual Studio Code
+.vscode/
+
+# MSTest / coverage
+*.trx
+*.coverage
+*.coveragexml
+coverage*/
+TestResults/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
