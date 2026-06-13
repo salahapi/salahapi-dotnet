@@ -1,6 +1,6 @@
 # SalahAPI .NET
 
-A .NET 8 library for working with the [SalahAPI](https://salahapi.com) specification and calculating Islamic prayer times.
+A .NET 8 library for working with the [SalahAPI](https://github.com/salahapi/salahapi-specification) specification and calculating Islamic prayer times.
 
 ## Installation
 
