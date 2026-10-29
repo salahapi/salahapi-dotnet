@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TimeZoneConverter;
 
 namespace SalahAPI.Calculations;
@@ -276,18 +277,29 @@ public class Builder
     // Normalisation helpers
     // ---------------------------------------------------------------------------
 
+    /// <summary>
+    /// Normalize high latitude adjustment method from config format to PrayerTimes constant.
+    ///
+    /// Matching is case-insensitive: any casing and separator style (e.g. "middleOfTheNight",
+    /// "MIDDLE_OF_THE_NIGHT", "middle-of-the-night") is accepted by comparing on lowercased
+    /// alphanumeric characters only.
+    /// </summary>
     private static string NormalizeHighLatitudeAdjustment(string? method) => method switch
     {
-        "MiddleOfTheNight" or "MIDDLE_OF_THE_NIGHT" or "NightMiddle"
-            => PrayerTimes.LatitudeAdjustmentMethodMotn,
-        "AngleBased" or "ANGLE_BASED"
-            => PrayerTimes.LatitudeAdjustmentMethodAngle,
-        "OneSeventh" or "ONE_SEVENTH"
-            => PrayerTimes.LatitudeAdjustmentMethodOneSeventh,
-        "None" or "NONE"
-            => PrayerTimes.LatitudeAdjustmentMethodNone,
-        _ => PrayerTimes.LatitudeAdjustmentMethodMotn
+        null => PrayerTimes.LatitudeAdjustmentMethodMotn,
+        _ => NormalizeAlphanumerics(method) switch
+        {
+            "middleofthenight" or "nightmiddle" => PrayerTimes.LatitudeAdjustmentMethodMotn,
+            "anglebased"   => PrayerTimes.LatitudeAdjustmentMethodAngle,
+            "oneseventh"   => PrayerTimes.LatitudeAdjustmentMethodOneSeventh,
+            "none"         => PrayerTimes.LatitudeAdjustmentMethodNone,
+            _              => PrayerTimes.LatitudeAdjustmentMethodMotn
+        }
     };
+
+    /// <summary>Lowercase a value and strip everything but alphanumeric characters.</summary>
+    private static string NormalizeAlphanumerics(string value)
+        => Regex.Replace(value.ToLowerInvariant(), "[^a-z0-9]", string.Empty);
 
     private static string NormalizeAsrSchool(string? method)
         => string.Equals(method, "hanafi", StringComparison.OrdinalIgnoreCase)

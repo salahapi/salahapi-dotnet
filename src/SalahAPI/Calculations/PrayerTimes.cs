@@ -74,7 +74,9 @@ public class PrayerTimes
         ["defaults"] = new() { ["isha"] = 14.0, ["maghrib"] = "1 min", ["midnight"] = "Standard" }
     };
 
-    private static readonly Dictionary<string, string> _methodCodeToKey = new()
+    // Method name matching is case-insensitive; the canonical constant casing is
+    // stored in _method so method-specific checks keep working.
+    private static readonly Dictionary<string, string> _methodCodeToKey = new(StringComparer.OrdinalIgnoreCase)
     {
         [Method.MethodMwl]       = "MWL",
         [Method.MethodIsna]      = "ISNA",
@@ -87,6 +89,32 @@ public class PrayerTimes
         [Method.MethodRussia]    = "Russia",
         [Method.MethodSingapore] = "Singapore",
     };
+
+    /// <summary>
+    /// Canonical highLats setting values keyed by lowercased-alphanumeric aliases,
+    /// accepting any casing and separator style (e.g. "middleOfTheNight",
+    /// "MIDDLE_OF_THE_NIGHT", "middle-of-the-night"). Defaults to AngleBased.
+    /// </summary>
+    private static readonly Dictionary<string, string> HighLatitudeAdjustmentSettings = new()
+    {
+        ["none"]             = "None",
+        ["middleofthenight"] = "NightMiddle",
+        ["nightmiddle"]      = "NightMiddle",
+        ["oneseventh"]       = "OneSeventh",
+    };
+
+    /// <summary>Canonical format setting values keyed by the public format constants (case-insensitive).</summary>
+    private static readonly Dictionary<string, string> TimeFormatSettings = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [TimeFormat24H]   = "24h",
+        [TimeFormat12H]   = "12h",
+        [TimeFormat12HNs] = "12H",
+        [TimeFormatFloat] = "Float",
+    };
+
+    /// <summary>Lowercase a value and strip everything but alphanumeric characters.</summary>
+    private static string NormalizeAlphanumerics(string value)
+        => Regex.Replace(value.ToLowerInvariant(), "[^a-z0-9]", string.Empty);
 
     // ---------------------------------------------------------------------------
     // Instance state
@@ -193,47 +221,48 @@ public class PrayerTimes
 
     public void SetMethod(string method)
     {
-        _method = method;
+        // Method name matching is case-insensitive; the canonical constant casing
+        // is stored so method-specific checks keep working.
+        _method = _methodCodeToKey.TryGetValue(method, out var key) ? key : method;
         _settings = MergeSettings(_settings, _methodParams["defaults"]);
-        if (_methodCodeToKey.TryGetValue(method, out var key) && _methodParams.TryGetValue(key, out var mp))
+        if (key is not null && _methodParams.TryGetValue(key, out var mp))
             _settings = MergeSettings(_settings, mp);
     }
 
     public void SetSchool(string school)
     {
         _school = school;
-        _settings["asr"] = school == SchoolHanafi ? "Hanafi" : "Standard";
+        _settings["asr"] = string.Equals(school, SchoolHanafi, StringComparison.OrdinalIgnoreCase)
+            ? "Hanafi" : "Standard";
     }
 
+    /// <summary>Set midnight calculation mode (case-insensitive).</summary>
     public void SetMidnightMode(string mode)
     {
         _midnightMode = mode;
-        _settings["midnight"] = mode == MidnightModeJafari ? "Jafari" : "Standard";
+        _settings["midnight"] = string.Equals(mode, MidnightModeJafari, StringComparison.OrdinalIgnoreCase)
+            ? "Jafari" : "Standard";
     }
 
+    /// <summary>
+    /// Set latitude adjustment method for high latitudes.
+    ///
+    /// Matching is case-insensitive: any casing and separator style (e.g. "middleOfTheNight",
+    /// "MIDDLE_OF_THE_NIGHT", "middle-of-the-night") is accepted by comparing on lowercased
+    /// alphanumeric characters only.
+    /// </summary>
     public void SetLatitudeAdjustmentMethod(string method)
     {
         _latitudeAdjustmentMethod = method;
-        _settings["highLats"] = method switch
-        {
-            LatitudeAdjustmentMethodNone       => "None",
-            LatitudeAdjustmentMethodMotn       => "NightMiddle",
-            LatitudeAdjustmentMethodOneSeventh => "OneSeventh",
-            _                                  => "AngleBased"
-        };
+        _settings["highLats"] = HighLatitudeAdjustmentSettings.GetValueOrDefault(
+            NormalizeAlphanumerics(method), "AngleBased");
     }
 
+    /// <summary>Set time format (case-insensitive).</summary>
     public void SetTimeFormat(string format)
     {
         _timeFormat = format;
-        _settings["format"] = format switch
-        {
-            TimeFormat24H   => "24h",
-            TimeFormat12H   => "12h",
-            TimeFormat12HNs => "12H",
-            TimeFormatFloat => "Float",
-            _               => "24h"
-        };
+        _settings["format"] = TimeFormatSettings.GetValueOrDefault(format, "24h");
     }
 
     public void Tune(int imsak = 0, int fajr = 0, int sunrise = 0, int dhuhr = 0,
